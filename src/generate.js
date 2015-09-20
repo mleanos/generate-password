@@ -17,11 +17,15 @@ self.generate = function(options) {
 	if (!options.hasOwnProperty('uppercase')) options.uppercase = true;
 	if (!options.hasOwnProperty('excludeSimilarCharacters')) options.excludeSimilarCharacters = false;
 
-	var lowercase = 'abcdefghijklmnopqrstuvwxyz',
-		uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-		numbers = '0123456789',
-		symbols = '!@#$%^&*()+_-=}{[]|:;"/?.><,`~',
-		similarCharacters = /[ilLI|`oO0]/g;
+  // check if must limit the number of repeating characters
+  if (!options.hasOwnProperty('repeatCharactersLimit') || typeof options.repeatCharactersLimit !== 'number' || options.repeatCharactersLimit < 2) options.repeatCharactersLimit = undefined;
+
+  var lowercase = 'abcdefghijklmnopqrstuvwxyz',
+    uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    numbers = '0123456789',
+    symbols = '!@#$%^&*()+_-=}{[]|:;"/?.><,`~',
+    similarCharacters = /[ilLI|`oO0]/g,
+    repeatingCharacters = options.repeatCharactersLimit ? new RegExp('(.)\\1{' + (options.repeatCharactersLimit -1) + ',}', 'g') : undefined;
 
 	// Generate character pool
 	var pool = lowercase;
@@ -44,9 +48,12 @@ self.generate = function(options) {
 	}
 
 	var password = '';
-	for (var i = 0; i < options.length; i++) {
-		password += pool[randomNumber(pool.length)];
-	}
+  while (password.length < options.length) {
+    password += pool[randomNumber(pool.length)];
+
+    // remove repeating characters if required
+    if (repeatingCharacters) password = password.replace(repeatingCharacters, '');
+  }
 
 	return password;
 };
